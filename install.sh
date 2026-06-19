@@ -86,6 +86,7 @@ mount --mkdir "$MY_DEVICE"1 /mnt/boot
 # Example:
 # /etc/crypttab: swapdevice  /dev/sda2  /dev/urandom  swap,cipher=aes-xts-plain64,size=256
 # /etc/fstap: /dev/mapper/swapdevice  none  swap  defaults  0  0
+# sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 
 # EXPERIMENTAL
 # Mouting /tmp as tmpfs: https://wiki.archlinux.org/title/Tmpfs

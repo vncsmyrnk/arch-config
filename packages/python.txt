@@ -1,0 +1,4 @@
+python-pandas
+python-matplotlib
+python-seaborn
+python-plotext
