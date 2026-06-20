@@ -163,7 +163,7 @@
 
     - name: Ensure /etc/timeshift directory exists
       become: true
-      tags: [scratch, etc]
+      tags: [core, etc]
       ansible.builtin.file:
         path: /etc/timeshift
         state: directory
@@ -172,7 +172,7 @@
 
     - name: Copy /etc/timeshift/timeshift.json
       become: true
-      tags: [scratch, etc]
+      tags: [core, etc]
       ansible.builtin.template:
         src: ./etc/timeshift/timeshift.json.j2
         dest: /etc/timeshift/timeshift.json
@@ -181,7 +181,7 @@
 
     - name: Copy /etc/pacman.conf
       become: true
-      tags: [scratch, etc]
+      tags: [core, etc]
       ansible.builtin.copy:
         src: ./etc/pacman.conf
         dest: /etc/pacman.conf
