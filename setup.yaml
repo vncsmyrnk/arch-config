@@ -19,7 +19,7 @@
       check_mode: false
 
     - name: Ensure yay target directory exists
-      tags: [core, yay]
+      tags: [always]
       ansible.builtin.file:
         path: "{{ ansible_facts['user_dir'] }}/.config/yay"
         state: directory
@@ -28,7 +28,7 @@
       check_mode: false
 
     - name: Stow yay configuration
-      tags: [core, yay]
+      tags: [core, yay, dotfiles]
       ansible.builtin.command:
         cmd: stow -t "{{ ansible_facts['user_dir'] }}/.config/yay" yay
         creates: "{{ ansible_facts['user_dir'] }}}/.config/yay"
@@ -189,7 +189,7 @@
         backup: true
 
     - name: Clone dotfiles Git repository
-      tags: [core]
+      tags: [core, dotfiles]
       ansible.builtin.git:
         repo: "https://github.com/vncsmyrnk/dotfiles.git"
         dest: "{{ ansible_facts['user_dir'] }}/dotfiles"
