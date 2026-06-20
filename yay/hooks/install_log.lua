@@ -1,80 +1,30 @@
--- https://github.com/Jguer/yay/tree/70d7a0f0a8136915cb40b792fd386a14be866393/doc/examples/maintainer_change.lua
+-- https://github.com/Jguer/yay/tree/70d7a0f0a8136915cb40b792fd386a14be866393/doc/examples/install_log.lua
 
--- Warn when an AUR package's maintainer changes between upgrades.
---
--- The known maintainer for each package is stored in a plain text cache file
--- inside the yay cache directory (build_dir). On the first upgrade for a
--- package the current maintainer is recorded without any warning. On
--- subsequent upgrades:
---   * same maintainer  → debug "match correct"
---   * different maintainer → error "new maintainer, double check build files"
---
--- The cache is updated whenever a new or changed maintainer is seen.
---
--- Cache file location: <cache_dir>/maintainer_cache
--- Format: one "pkgname=maintainer" entry per line.
+local log_path = (os.getenv("XDG_STATE_HOME") or (os.getenv("HOME") .. "/.local/state")) .. "/yay/install.log"
+local log_dir = log_path:match("^(.+)/[^/]+$")
 
--- missing reliable cfg getter
-local cache_dir = (os.getenv("XDG_CACHE_HOME") or (os.getenv("HOME") .. "/.cache")) .. "/yay"
-local cache_file = cache_dir .. "/maintainer_cache"
-
-local function load_cache()
-  local cache = {}
-  local f = io.open(cache_file, "r")
-  if not f then
-    return cache
-  end
-  for line in f:lines() do
-    local name, maintainer = line:match("^([^=]+)=(.*)$")
-    if name then
-      cache[name] = maintainer
-    end
-  end
-  f:close()
-  return cache
-end
-
-local function save_cache(cache)
-  local f = assert(io.open(cache_file, "w"))
-  for name, maintainer in pairs(cache) do
-    f:write(name .. "=" .. maintainer .. "\n")
-  end
-  f:close()
-end
-
-yay.create_autocmd("UpgradeSelect", {
-  desc = "warn on AUR maintainer changes",
+yay.create_autocmd("PostInstall", {
+  desc = "append every installed/upgraded package to a persistent log",
   callback = function(event)
-    yay.log.info("checking for AUR maintainer changes")
-    local cache = load_cache()
-    local dirty = false
-
-    for _, pkg in ipairs(event.data.upgrades) do
-      if pkg.repository == "aur" and pkg.maintainer ~= "" then
-        local cached = cache[pkg.name]
-        if cached == nil then
-          -- First time seeing this package: seed the cache silently.
-          cache[pkg.name] = pkg.maintainer
-          dirty = true
-        elseif cached == pkg.maintainer then
-          yay.log.debug("match correct: " .. pkg.name .. " " .. pkg.maintainer)
-        else
-          yay.log.error(
-            "new maintainer, double check build files: ",
-            pkg.name,
-            "(was: " .. cached .. ", now: " .. pkg.maintainer .. ")"
-          )
-          cache[pkg.name] = pkg.maintainer
-          dirty = true
-        end
-      end
+    yay.log.info("install_log: writing to ", log_path)
+    os.execute("mkdir -p " .. log_dir)
+    local f, err = io.open(log_path, "a")
+    if not f then
+      yay.log.warn("install_log: cannot open log file: ", err)
+      return
     end
 
-    if dirty then
-      yay.log.info("saving maintainer cache:", cache_file)
-      save_cache(cache)
+    local ts = os.date("%Y-%m-%dT%H:%M:%S")
+
+    for _, pkg in ipairs(event.data.packages) do
+      local upgrade = pkg.local_version ~= ""
+      local action = upgrade and "upgrade" or "install"
+      local version_change = upgrade and (pkg.local_version .. " -> " .. pkg.version) or pkg.version
+      f:write(
+        string.format("%s  %-9s %-7s %-14s %-12s %s\n", ts, action, pkg.source, pkg.reason, pkg.name, version_change)
+      )
     end
 
-    return { exclude = {}, skip_menu = false }
+    f:close()
   end,
 })

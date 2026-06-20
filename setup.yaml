@@ -1,0 +1,171 @@
+---
+- name: Some arch configuration
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: Clone yay-bin from AUR
+      tags: [core]
+      ansible.builtin.git:
+        repo: "https://aur.archlinux.org/yay-bin.git"
+        dest: "{{ ansible_facts['user_dir'] }}/yay"
+
+    - name: Build and install yay
+      tags: [core]
+      ansible.builtin.command:
+        cmd: makepkg -si --noconfirm
+        chdir: "{{ ansible_facts['user_dir'] }}/yay"
+        creates: /usr/bin/yay
+
+    - name: Ensure yay target directory exists
+      tags: [core]
+      ansible.builtin.file:
+        path: "{{ ansible_facts['user_dir'] }}/.config/yay"
+        state: directory
+        mode: "0755"
+      changed_when: false
+
+    - name: Stow yay configuration
+      tags: [core]
+      ansible.builtin.command:
+        cmd: stow -t "{{ ansible_facts['user_dir'] }}/.config/yay" yay
+        creates: "{{ ansible_facts['user_dir'] }}}/.config/yay"
+      changed_when: false
+
+    - name: Install core tools
+      become: true
+      tags: [core]
+      community.general.pacman:
+        name:
+          [
+            base-devel,
+            man-db,
+            man-pages,
+            git,
+            net-tools,
+            networkmanager,
+            sudo,
+            just,
+            stow,
+            lsof,
+            fastfetch,
+            tree,
+            pass,
+            tmux,
+            lazygit,
+            jq,
+            fzf,
+            ripgrep,
+            tree-sitter,
+            tree-sitter-cli,
+            oath-toolkit,
+            fd,
+            sshfs,
+            mkcert,
+            rclone,
+            neovim,
+            lua51,
+            rofi,
+            htop,
+            nvtop,
+            envycontrol,
+            nix,
+            downgrade,
+            shell-utils-git,
+            inetutils,
+            openbsd-netcat,
+            sops,
+            udisks2,
+            inotify-tools,
+            dmidecode,
+            miller,
+            ghostty,
+            timeshift,
+          ]
+        state: present
+        update_cache: true
+
+    - name: Install development tools
+      become: true
+      tags: [development]
+      community.general.pacman:
+        name:
+          [
+            docker,
+            docker-compose,
+            docker-buildx,
+            mariadb-clients,
+            go,
+            golangci-lint,
+            vault,
+            github-cli,
+            kubectl,
+            nodejs,
+            fluxcd,
+            stripe-cli,
+            google-cloud-sdk,
+            prettier,
+            luarocks,
+            ngrok,
+            htmlq,
+            npm,
+            yarn,
+            namcap,
+            moreutils,
+            redis-cli,
+            claude-code,
+            python-pandas,
+            python-matplotlib,
+            python-seaborn,
+            python-plotext,
+          ]
+        state: present
+        update_cache: true
+
+    - name: Install GPU tools
+      become: true
+      tags: [gpu]
+      community.general.pacman:
+        name: [nvidia-open]
+        state: present
+        update_cache: true
+
+    - name: Install GNOME tools
+      become: true
+      tags: [gnome]
+      community.general.pacman:
+        name: [eog, gnome, gdm, wl-clipboard]
+        state: present
+        update_cache: true
+
+    - name: Install AUR packages
+      tags: [aur]
+      kewlfft.aur.aur:
+        use: yay
+        name:
+          - google-chrome,
+          - gnome-shell-extension-argos-git
+          - gnome-shell-extension-window-calls-git
+          - gwin-git
+          - shell-utils-git
+          - antigravity-cli
+        state: present
+
+    - name: Copy /etc files
+      become: true
+      tags: [scratch, etc]
+      ansible.builtin.copy:
+        src: ./etc/
+        dest: /etc/
+        mode: "0644"
+        directory_mode: "0755"
+        backup: true
+
+    - name: Clone dotfiles Git repository
+      tags: [core]
+      ansible.builtin.git:
+        repo: "https://github.com/vncsmyrnk/dotfiles.git"
+        dest: "{{ ansible_facts['user_dir'] }}/dotfiles"
+        version: main
+        update: yes
+        recursive: yes
+      changed_when: false

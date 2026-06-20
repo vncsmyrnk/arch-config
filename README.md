@@ -2,6 +2,8 @@
 
 Useful information about arch config and utilities.
 
+This repo also provides an ansible playbook for installing several dependencies and applyng specific configurations after Arch itself was installed via [install.sh](install.sh).
+
 ## Useful links
 
 - [Wiki](https://wiki.archlinux.org/title/Main_page)
