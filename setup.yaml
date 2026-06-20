@@ -4,14 +4,14 @@
   connection: local
   tasks:
     - name: Clone yay-bin from AUR
-      tags: [core]
+      tags: [core, yay]
       ansible.builtin.git:
         repo: "https://aur.archlinux.org/yay-bin.git"
         dest: "{{ ansible_facts['user_dir'] }}/yay"
       check_mode: false
 
     - name: Build and install yay
-      tags: [core]
+      tags: [core, yay]
       ansible.builtin.command:
         cmd: makepkg -si --noconfirm
         chdir: "{{ ansible_facts['user_dir'] }}/yay"
@@ -19,7 +19,7 @@
       check_mode: false
 
     - name: Ensure yay target directory exists
-      tags: [core]
+      tags: [core, yay]
       ansible.builtin.file:
         path: "{{ ansible_facts['user_dir'] }}/.config/yay"
         state: directory
@@ -28,7 +28,7 @@
       check_mode: false
 
     - name: Stow yay configuration
-      tags: [core]
+      tags: [core, yay]
       ansible.builtin.command:
         cmd: stow -t "{{ ansible_facts['user_dir'] }}/.config/yay" yay
         creates: "{{ ansible_facts['user_dir'] }}}/.config/yay"
