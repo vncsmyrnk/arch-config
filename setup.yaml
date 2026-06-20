@@ -72,7 +72,6 @@
             nvtop,
             envycontrol,
             nix,
-            downgrade,
             shell-utils-git,
             inetutils,
             openbsd-netcat,
@@ -104,11 +103,9 @@
             kubectl,
             nodejs,
             fluxcd,
-            stripe-cli,
             google-cloud-sdk,
             prettier,
             luarocks,
-            ngrok,
             htmlq,
             npm,
             yarn,
@@ -119,7 +116,6 @@
             python-pandas,
             python-matplotlib,
             python-seaborn,
-            python-plotext,
           ]
         state: present
         update_cache: true
@@ -145,12 +141,18 @@
       kewlfft.aur.aur:
         use: yay
         name:
-          - google-chrome,
-          - gnome-shell-extension-argos-git
-          - gnome-shell-extension-window-calls-git
-          - gwin-git
-          - shell-utils-git
-          - antigravity-cli
+          [
+            google-chrome,
+            gnome-shell-extension-argos-git,
+            gnome-shell-extension-window-calls-git,
+            gwin-git,
+            shell-utils-git,
+            antigravity-cli,
+            ngrok,
+            stripe-cli,
+            downgrade,
+            python-plotext,
+          ]
         state: present
 
     - name: Get UUID of the backup target partition
