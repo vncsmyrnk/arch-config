@@ -8,6 +8,7 @@
       ansible.builtin.git:
         repo: "https://aur.archlinux.org/yay-bin.git"
         dest: "{{ ansible_facts['user_dir'] }}/yay"
+      check_mode: false
 
     - name: Build and install yay
       tags: [core]
@@ -15,6 +16,7 @@
         cmd: makepkg -si --noconfirm
         chdir: "{{ ansible_facts['user_dir'] }}/yay"
         creates: /usr/bin/yay
+      check_mode: false
 
     - name: Ensure yay target directory exists
       tags: [core]
@@ -23,6 +25,7 @@
         state: directory
         mode: "0755"
       changed_when: false
+      check_mode: false
 
     - name: Stow yay configuration
       tags: [core]
@@ -150,14 +153,39 @@
           - antigravity-cli
         state: present
 
-    - name: Copy /etc files
+    - name: Get UUID of the backup target partition
+      tags: [always]
+      ansible.builtin.command:
+        cmd: findmnt -n -o UUID -T /
+      register: target_drive_uuid
+      changed_when: false
+      check_mode: false
+
+    - name: Ensure /etc/timeshift directory exists
+      become: true
+      tags: [scratch, etc]
+      ansible.builtin.file:
+        path: /etc/timeshift
+        state: directory
+        mode: "0755"
+      check_mode: false
+
+    - name: Copy /etc/timeshift/timeshift.json
+      become: true
+      tags: [scratch, etc]
+      ansible.builtin.template:
+        src: ./etc/timeshift/timeshift.json.j2
+        dest: /etc/timeshift/timeshift.json
+        mode: "0644"
+        backup: true
+
+    - name: Copy /etc/pacman.conf
       become: true
       tags: [scratch, etc]
       ansible.builtin.copy:
-        src: ./etc/
-        dest: /etc/
+        src: ./etc/pacman.conf
+        dest: /etc/pacman.conf
         mode: "0644"
-        directory_mode: "0755"
         backup: true
 
     - name: Clone dotfiles Git repository
