@@ -116,6 +116,7 @@
             python-pandas,
             python-matplotlib,
             python-seaborn,
+            ansible-lint,
           ]
         state: present
         update_cache: true
