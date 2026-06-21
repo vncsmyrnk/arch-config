@@ -8,6 +8,7 @@
       ansible.builtin.git:
         repo: "https://aur.archlinux.org/yay-bin.git"
         dest: "{{ ansible_facts['user_dir'] }}/yay"
+        version: master
       check_mode: false
 
     - name: Build and install yay
@@ -198,6 +199,6 @@
         repo: "https://github.com/vncsmyrnk/dotfiles.git"
         dest: "{{ ansible_facts['user_dir'] }}/dotfiles"
         version: main
-        update: yes
-        recursive: yes
+        update: true
+        recursive: true
       changed_when: false

@@ -2,14 +2,16 @@ default:
   just --list
 
 dep:
-  pacman -S ansible
-  ansible-galaxy collection install -r requirements.yaml
+  ansible-galaxy collection install -r requirements.yml
 
 config:
-  ansible-playbook setup.yaml --tags "core" -K
+  ansible-playbook playbook.yml --tags "core" -K
 
 config-etc:
-  ansible-playbook setup.yaml --tags "etc" -K
+  ansible-playbook playbook.yml --tags "etc" -K
 
 config-all:
-  ansible-playbook setup.yaml -K
+  ansible-playbook playbook.yml -K
+
+lint:
+  ansible-lint playbook.yml
