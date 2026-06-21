@@ -152,6 +152,7 @@
             stripe-cli,
             downgrade,
             python-plotext,
+            github-copilot-cli,
           ]
         state: present
 
