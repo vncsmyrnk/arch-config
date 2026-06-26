@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  lint-playbook:
+    name: Lint ansible playbook
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: extractions/setup-just@v4
+
+      - name: Install ansible-lint
+        run: pipx install ansible-lint
+
+      - name: Run ansible-lint
+        run: just lint
+
+  validate:
+    name: Validate pacman.conf file
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test pacman.conf syntax
+        run: |
+          pacman-conf -c ./etc/pacman.conf > /dev/null
