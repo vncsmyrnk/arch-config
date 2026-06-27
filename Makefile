@@ -19,13 +19,7 @@ system:
 	pacman -Sy archlinux-keyring ansible ansible-core python python-jinja python-markupsafe python-yaml > /dev/null
 	ansible-galaxy collection install -r requirements.yml > /dev/null
 	ansible-playbook system.yml
-	@echo "All Done. Everything OK"
-	@read -p "Unmount and reboot? (Y/n): " reboot; \
-	if [ "$${reboot,,}" != "n" ]; then \
-		echo "Unmounting and rebooting..."; \
-		umount -R /mnt; \
-		reboot; \
-	fi
+	@echo "All Done. Inspect, unmount and reboot"
 
 .PHONY: config
 config:
