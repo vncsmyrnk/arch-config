@@ -3,38 +3,6 @@
   hosts: 127.0.0.1
   connection: local
   tasks:
-    - name: Clone yay-bin from AUR
-      tags: [core, yay]
-      ansible.builtin.git:
-        repo: "https://aur.archlinux.org/yay-bin.git"
-        dest: "{{ ansible_facts['user_dir'] }}/yay"
-        version: master
-      check_mode: false
-
-    - name: Build and install yay
-      tags: [core, yay]
-      ansible.builtin.command:
-        cmd: makepkg -si --noconfirm
-        chdir: "{{ ansible_facts['user_dir'] }}/yay"
-        creates: /usr/bin/yay
-      check_mode: false
-
-    - name: Ensure yay target directory exists
-      tags: [always]
-      ansible.builtin.file:
-        path: "{{ ansible_facts['user_dir'] }}/.config/yay"
-        state: directory
-        mode: "0755"
-      changed_when: false
-      check_mode: false
-
-    - name: Stow yay configuration
-      tags: [core, yay, dotfiles]
-      ansible.builtin.command:
-        cmd: stow -t "{{ ansible_facts['user_dir'] }}/.config/yay" yay
-        creates: "{{ ansible_facts['user_dir'] }}}/.config/yay"
-      changed_when: false
-
     - name: Install core tools
       become: true
       tags: [core]
@@ -71,9 +39,7 @@
             rofi,
             htop,
             nvtop,
-            envycontrol,
             nix,
-            shell-utils-git,
             inetutils,
             openbsd-netcat,
             sops,
@@ -86,6 +52,64 @@
           ]
         state: present
         update_cache: true
+
+    - name: Check if yay is installed
+      tags: [core, yay]
+      ansible.builtin.stat:
+        path: /usr/bin/yay
+      register: yay_stat
+
+    - name: Clone yay-bin from AUR
+      tags: [core, yay]
+      ansible.builtin.git:
+        repo: "https://aur.archlinux.org/yay-bin.git"
+        dest: "{{ ansible_facts['user_dir'] }}/yay"
+        version: master
+      when: not yay_stat.stat.exists
+      check_mode: false
+
+    - name: Build yay
+      tags: [core, yay]
+      ansible.builtin.command:
+        cmd: makepkg -f --noconfirm
+        chdir: "{{ ansible_facts['user_dir'] }}/yay"
+      when: not yay_stat.stat.exists
+      changed_when: true
+      check_mode: false
+
+    - name: Find the yay package file
+      tags: [core, yay]
+      ansible.builtin.find:
+        paths: "{{ ansible_facts['user_dir'] }}/yay"
+        patterns: "yay-*.pkg.tar.zst"
+      register: yay_package
+      when: not yay_stat.stat.exists
+      check_mode: false
+
+    - name: Install yay package
+      tags: [core, yay]
+      become: true
+      ansible.builtin.command:
+        cmd: "pacman -U --noconfirm {{ yay_package.files[0].path }}"
+      when: not yay_stat.stat.exists
+      changed_when: true
+      check_mode: false
+
+    - name: Ensure yay target directory exists
+      tags: [always]
+      ansible.builtin.file:
+        path: "{{ ansible_facts['user_dir'] }}/.config/yay"
+        state: directory
+        mode: "0755"
+      changed_when: false
+      check_mode: false
+
+    - name: Stow yay configuration
+      tags: [core, yay, dotfiles]
+      ansible.builtin.command:
+        cmd: stow -t "{{ ansible_facts['user_dir'] }}/.config/yay" yay
+        creates: "{{ ansible_facts['user_dir'] }}}/.config/yay"
+      changed_when: false
 
     - name: Install development tools
       become: true
@@ -104,7 +128,6 @@
             kubectl,
             nodejs,
             fluxcd,
-            google-cloud-sdk,
             prettier,
             luarocks,
             htmlq,
@@ -112,8 +135,6 @@
             yarn,
             namcap,
             moreutils,
-            redis-cli,
-            claude-code,
             python-pandas,
             python-matplotlib,
             python-seaborn,
@@ -139,6 +160,7 @@
         update_cache: true
 
     - name: Install AUR packages
+      become: true
       tags: [aur]
       kewlfft.aur.aur:
         use: yay
@@ -155,6 +177,10 @@
             downgrade,
             python-plotext,
             github-copilot-cli,
+            envycontrol,
+            google-cloud-sdk,
+            redis-cli,
+            claude-code,
           ]
         state: present
 
