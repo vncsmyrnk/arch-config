@@ -79,13 +79,6 @@
       ansible.builtin.command: mkfs.ext4 -F "{{ root_part }}"
       changed_when: true
 
-    - name: Format swap partition
-      ansible.builtin.command: mkswap "{{ swap_part }}"
-      changed_when: true
-
-    - name: Enable swap
-      ansible.builtin.command: swapon "{{ swap_part }}"
-      changed_when: true
 
     - name: Mount root partition
       ansible.builtin.command: mount "{{ root_part }}" /mnt # noqa: command-instead-of-module
@@ -124,11 +117,29 @@
         USERNAME: "{{ USERNAME }}"
         PASSWORD: "{{ PASSWORD }}"
         ROOT_PASSWORD: "{{ ROOT_PASSWORD }}"
+        SWAP_PART: "{{ swap_part }}"
 
 - name: Arch Linux Bootstrap - Chroot Configuration
   hosts: /mnt
   gather_facts: false
   tasks:
+    - name: Configure encrypted swap in crypttab
+      ansible.builtin.lineinfile:
+        path: /etc/crypttab
+        line: "swapdevice  {{ SWAP_PART }}  /dev/urandom  swap,cipher=aes-xts-plain64,size=256"
+        create: true
+        mode: "0644"
+
+    - name: Add encrypted swap to fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: "/dev/mapper/swapdevice  none  swap  defaults  0  0"
+
+    - name: Add tmpfs for /tmp to fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: "tmpfs /tmp tmpfs rw,nodev,nosuid,size=50% 0 0"
+
     - name: Set timezone
       ansible.builtin.file:
         src: /usr/share/zoneinfo/America/Sao_Paulo
