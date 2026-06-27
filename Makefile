@@ -5,7 +5,12 @@ help:
 	@echo "  config       - Run the full configuration playbook as the target user after installation"
 	@echo "  config-core  - Run the configuration playbook with 'core' tags as the target user after installation"
 	@echo "  config-etc   - Run the configuration playbook with 'etc' tags as the target user after installation"
+	@echo "  deps         - Install ansible-galaxy dependencies"
 	@echo "  lint         - Lint the playbooks"
+
+.PHONY: deps
+deps:
+	ansible-galaxy collection install -r requirements.yml > /dev/null
 
 .PHONY: system
 system:
