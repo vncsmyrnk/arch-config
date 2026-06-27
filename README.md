@@ -1,21 +1,23 @@
+![arch](https://img.shields.io/badge/Arch%20Linux-blue?style=plastic&logo=archlinux)
+![ansible](https://img.shields.io/badge/Ansible-black?style=plastic&logo=ansible)
+[![GitHub main branch check runs](https://img.shields.io/github/check-runs/vncsmyrnk/arch-config/main?style=plastic&logo=github&label=CI)](https://github.com/vncsmyrnk/arch-config/actions/workflows/ci.yaml)
+
 # Arch
 
 Useful information about arch config and utilities.
 
-This repo also provides an ansible playbook for installing several dependencies and applyng specific configurations after Arch itself was installed via [install.sh](install.sh).
+This repo also provides ansible playbooks containing an opinionated arch install and user configuration. Use them carefully.
+
+## Install system and user config
+
+```sh
+make help
+```
 
 ## Useful links
 
 - [Wiki](https://wiki.archlinux.org/title/Main_page)
 - [ISOs](https://archlinux.org/download/)
-
-## Archinstall
-
-```bash
-curl -LO https://raw.githubusercontent.com/vncsmyrnk/arch/refs/heads/main/install.sh
-chmod +x install.sh
-MY_PASSWORD=password MY_ROOT_PASSWORD=root_password ./install.sh
-```
 
 ## Encrypting partitions
 
@@ -92,9 +94,3 @@ mount -o remount,size=1G /run/archiso/cow
 Install `linux-lts` and `linux-lts-headers` alongside `linux` and `linux-headers`. The LTS kernel can be useful if some regression problem on kernel updates.
 
 When using GRUB, regenerate the configuration file. This ensures the LTS kernel appears on "Advanced options" section.
-
-## Applying configurations
-
-```bash
-just config
-```

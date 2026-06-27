@@ -8,13 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: extractions/setup-just@v4
 
       - name: Install ansible-lint
         run: pipx install ansible-lint
 
       - name: Run ansible-lint
-        run: just lint
+        run: make lint
 
   validate:
     name: Validate pacman.conf file

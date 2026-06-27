@@ -1,0 +1,232 @@
+---
+- name: Arch Linux Bootstrap - Partition and Base Install
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_prompt:
+    - name: DEVICE
+      prompt: "Device to partition (e.g., /dev/sda or /dev/nvme0n1)"
+      private: false
+      default: /dev/sda
+    - name: SWAP_SIZE_MIB
+      prompt: "Swap size in MiB"
+      private: false
+      default: "8192"
+    - name: HOSTNAME
+      prompt: "Hostname"
+      private: false
+      default: "myarch"
+    - name: USERNAME
+      prompt: "Username"
+      private: false
+      default: "vncsmyrnk"
+    - name: PASSWORD
+      prompt: "User Password"
+      private: true
+    - name: ROOT_PASSWORD
+      prompt: "Root Password"
+      private: true
+
+  vars:
+    part_suffix: "{% if 'nvme' in DEVICE or 'loop' in DEVICE %}p{% else %}{% endif %}"
+    efi_part: "{{ DEVICE }}{{ part_suffix }}1"
+    swap_part: "{{ DEVICE }}{{ part_suffix }}2"
+    root_part: "{{ DEVICE }}{{ part_suffix }}3"
+
+  tasks:
+    - name: Ensure variables are provided
+      ansible.builtin.fail:
+        msg: "PASSWORD and ROOT_PASSWORD must be provided"
+      when: PASSWORD == "" or ROOT_PASSWORD == ""
+
+    - name: Set timezone to UTC temporarily
+      ansible.builtin.command: timedatectl set-ntp true
+      changed_when: true
+
+    - name: Set keyboard layout
+      ansible.builtin.command: loadkeys br-abnt
+      changed_when: true
+
+    - name: Create GPT partition table
+      ansible.builtin.command: parted "{{ DEVICE }}" --script mklabel gpt
+      changed_when: true
+
+    - name: Create EFI partition
+      ansible.builtin.command: parted "{{ DEVICE }}" --script mkpart EFI fat32 1MiB 1025MiB
+      changed_when: true
+
+    - name: Set boot flag on EFI
+      ansible.builtin.command: parted "{{ DEVICE }}" --script set 1 boot on
+      changed_when: true
+
+    - name: Create swap partition
+      ansible.builtin.command: parted "{{ DEVICE }}" --script mkpart swap linux-swap 1025MiB "{{ SWAP_SIZE_MIB | int + 1025 }}MiB"
+      changed_when: true
+
+    - name: Create root partition
+      ansible.builtin.command: parted "{{ DEVICE }}" --script mkpart root ext4 "{{ SWAP_SIZE_MIB | int + 1025 }}MiB" 100%
+      changed_when: true
+
+    - name: Wait for device nodes
+      ansible.builtin.command: udevadm settle
+      changed_when: false
+
+    - name: Format EFI partition
+      ansible.builtin.command: mkfs.fat -F32 "{{ efi_part }}"
+      changed_when: true
+
+    - name: Format root partition
+      ansible.builtin.command: mkfs.ext4 -F "{{ root_part }}"
+      changed_when: true
+
+    - name: Format swap partition
+      ansible.builtin.command: mkswap "{{ swap_part }}"
+      changed_when: true
+
+    - name: Enable swap
+      ansible.builtin.command: swapon "{{ swap_part }}"
+      changed_when: true
+
+    - name: Mount root partition
+      ansible.builtin.command: mount "{{ root_part }}" /mnt # noqa: command-instead-of-module
+      changed_when: true
+
+    - name: Mount EFI partition
+      ansible.builtin.command: mount --mkdir "{{ efi_part }}" /mnt/boot # noqa: command-instead-of-module
+      changed_when: true
+
+    - name: Setup pacman mirrors
+      ansible.builtin.copy:
+        dest: /etc/pacman.d/mirrorlist
+        mode: "0644"
+        content: |
+          Server = http://arch.mirror.constant.com/$repo/os/$arch
+          Server = https://archlinux.thaller.ws/$repo/os/$arch
+          Server = https://mirror.moson.org/arch/$repo/os/$arch
+          Server = http://archlinux.thaller.ws/$repo/os/$arch
+          Server = http://mirror.moson.org/arch/$repo/os/$arch
+
+    - name: Run pacstrap
+      ansible.builtin.command: pacstrap -K /mnt base linux linux-firmware python
+      changed_when: true
+
+    - name: Generate fstab
+      ansible.builtin.shell: genfstab -U /mnt >> /mnt/etc/fstab
+      changed_when: true
+
+    - name: Add chroot host for next play
+      ansible.builtin.add_host:
+        name: /mnt
+        ansible_connection: chroot
+        ansible_chroot_exe: arch-chroot
+        ansible_python_interpreter: /usr/bin/python3
+        HOSTNAME: "{{ HOSTNAME }}"
+        USERNAME: "{{ USERNAME }}"
+        PASSWORD: "{{ PASSWORD }}"
+        ROOT_PASSWORD: "{{ ROOT_PASSWORD }}"
+
+- name: Arch Linux Bootstrap - Chroot Configuration
+  hosts: /mnt
+  gather_facts: false
+  tasks:
+    - name: Set timezone
+      ansible.builtin.file:
+        src: /usr/share/zoneinfo/America/Sao_Paulo
+        dest: /etc/localtime
+        state: link
+        force: true
+
+    - name: Sync hardware clock
+      ansible.builtin.command: hwclock --systohc
+      changed_when: true
+
+    - name: Uncomment en_US locale
+      ansible.builtin.replace:
+        path: /etc/locale.gen
+        regexp: '^#en_US\.UTF-8 UTF-8'
+        replace: "en_US.UTF-8 UTF-8"
+
+    - name: Generate locale
+      ansible.builtin.command: locale-gen
+      changed_when: true
+
+    - name: Set locale.conf
+      ansible.builtin.copy:
+        dest: /etc/locale.conf
+        mode: "0644"
+        content: "LANG=en_US.UTF-8\n"
+
+    - name: Set vconsole.conf
+      ansible.builtin.copy:
+        dest: /etc/vconsole.conf
+        mode: "0644"
+        content: "KEYMAP=br-abnt\n"
+
+    - name: Set hostname
+      ansible.builtin.copy:
+        dest: /etc/hostname
+        mode: "0644"
+        content: "{{ HOSTNAME }}\n"
+
+    - name: Mkinitcpio
+      ansible.builtin.command: mkinitcpio -P
+      changed_when: true
+
+    - name: Install grub and system packages
+      community.general.pacman:
+        name:
+          - grub
+          - efibootmgr
+          - gnome
+          - gdm
+          - base
+          - base-devel
+          - sudo
+          - networkmanager
+          - git
+          - neovim
+          - just
+          - docker
+          - docker-buildx
+          - intel-ucode
+          - fastfetch
+          - net-tools
+        state: present
+        update_cache: true
+
+    - name: Set root password
+      ansible.builtin.user:
+        name: root
+        password: "{{ ROOT_PASSWORD | password_hash('sha512') }}"
+
+    - name: Install GRUB
+      ansible.builtin.command: grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+      changed_when: true
+
+    - name: Generate GRUB config
+      ansible.builtin.command: grub-mkconfig -o /boot/grub/grub.cfg
+      changed_when: true
+
+    - name: Create main user
+      ansible.builtin.user:
+        name: "{{ USERNAME }}"
+        password: "{{ PASSWORD | password_hash('sha512') }}"
+        groups: wheel
+        shell: /bin/bash
+        create_home: true
+
+    - name: Enable sudo for wheel
+      ansible.builtin.replace:
+        path: /etc/sudoers
+        regexp: '^# %wheel ALL=\(ALL:ALL\) ALL'
+        replace: "%wheel ALL=(ALL:ALL) ALL"
+        validate: "visudo -cf %s"
+
+    - name: Enable essential services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: true
+      loop:
+        - systemd-networkd
+        - NetworkManager
+        - gdm
