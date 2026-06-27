@@ -74,7 +74,7 @@ Make sure to also install `envycontrol` for switching between integrated and ded
 
 Vim is useful during the installation for running the commands one by one. Using the system clipboard in this scenario is very useful.
 
-- Install `vim-gtk3`
+- Install `gvim`
 - Set the clipboard inside vim: `set clipboard=unnamedplus`
 
 ### Increase archiso disk space
