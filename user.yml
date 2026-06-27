@@ -177,12 +177,19 @@
 
     - name: Copy /etc/timeshift/timeshift.json
       become: true
-      tags: [core, etc]
+      tags: [core, etc, timeshift]
       ansible.builtin.template:
         src: ./etc/timeshift/timeshift.json.j2
         dest: /etc/timeshift/timeshift.json
         mode: "0644"
         backup: true
+
+    - name: Enable cronie for timeshift
+      become: true
+      tags: [core, timeshift]
+      ansible.builtin.systemd:
+        name: cronie
+        enabled: true
 
     - name: Copy /etc/pacman.conf
       become: true
