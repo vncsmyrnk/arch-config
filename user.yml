@@ -160,31 +160,6 @@
         state: present
         update_cache: true
 
-    - name: Install AUR packages
-      become: true
-      tags: [aur]
-      kewlfft.aur.aur:
-        use: yay
-        name:
-          [
-            google-chrome,
-            gnome-shell-extension-argos-git,
-            gnome-shell-extension-window-calls-git,
-            gwin-git,
-            shell-utils-git,
-            antigravity-cli,
-            ngrok,
-            stripe-cli,
-            downgrade,
-            python-plotext,
-            github-copilot-cli,
-            envycontrol,
-            google-cloud-sdk,
-            redis-cli,
-            claude-code,
-          ]
-        state: present
-
     - name: Get UUID of the backup target partition
       tags: [always]
       ansible.builtin.command:

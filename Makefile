@@ -2,6 +2,7 @@
 help:
 	@echo "Available targets:"
 	@echo "  system       - Install arch linux via Ansible (can be run from Live ISO)"
+	@echo "  install-aur  - Install AUR packages interactively"
 	@echo "  config       - Run the full configuration playbook as the target user after installation"
 	@echo "  config-core  - Run the configuration playbook with 'core' tags as the target user after installation"
 	@echo "  config-etc   - Run the configuration playbook with 'etc' tags as the target user after installation"
@@ -21,6 +22,13 @@ system:
 	ansible-galaxy collection install -r requirements.yml
 	ansible-playbook system.yml
 	@echo "All Done. Inspect, unmount and reboot"
+
+.PHONY: install-aur
+install-aur: # Automating AUR packages installations is a security risk
+	yay -S \
+	google-chrome gnome-shell-extension-argos-git gnome-shell-extension-window-calls-git gwin-git \
+	shell-utils-git antigravity-cli ngrok stripe-cli downgrade python-plotext \
+	github-copilot-cli envycontrol google-cloud-sdk redis-cli claude-code
 
 .PHONY: config
 config:
