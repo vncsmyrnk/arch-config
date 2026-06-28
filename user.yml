@@ -49,6 +49,7 @@
             miller,
             ghostty,
             timeshift,
+            zsh,
           ]
         state: present
         update_cache: true

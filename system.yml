@@ -79,7 +79,6 @@
       ansible.builtin.command: mkfs.ext4 -F "{{ root_part }}"
       changed_when: true
 
-
     - name: Mount root partition
       ansible.builtin.command: mount "{{ root_part }}" /mnt # noqa: command-instead-of-module
       changed_when: true
@@ -202,6 +201,7 @@
           - intel-ucode
           - fastfetch
           - net-tools
+          - zsh
         state: present
         update_cache: true
 
@@ -223,7 +223,7 @@
         name: "{{ USERNAME }}"
         password: "{{ PASSWORD | password_hash('sha512') }}"
         groups: wheel
-        shell: /bin/bash
+        shell: /bin/zsh
         create_home: true
 
     - name: Enable sudo for wheel
