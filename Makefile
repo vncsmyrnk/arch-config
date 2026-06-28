@@ -16,11 +16,14 @@ config-deps:
 
 .PHONY: system
 system:
-	@read -p "This process will install Arch Linux from scratch using ansible. Continue? (y/N): " choice; \
-	if [ "$${choice,,}" != "y" ]; then echo "Aborted."; exit 0; fi
-	pacman -Sy archlinux-keyring ansible ansible-core python python-jinja python-markupsafe python-yaml
+	@if [ -z "$$CI" ]; then \
+		read -p "This process will install Arch Linux from scratch using ansible. Continue? (y/N): " choice; \
+		if [ "$${choice,,}" != "y" ]; then echo "Aborted."; exit 0; fi; \
+	fi
+	mount -o remount,size=2G /run/archiso/cowspace
+	pacman -Sy --noconfirm archlinux-keyring ansible ansible-core python python-jinja python-markupsafe python-yaml
 	ansible-galaxy collection install -r requirements.yml
-	ansible-playbook system.yml
+	ansible-playbook system.yml $(EXTRA_VARS)
 	@echo "All Done. Inspect, unmount and reboot"
 
 .PHONY: install-aur
@@ -32,20 +35,28 @@ install-aur: # Automating AUR packages installations is a security risk
 
 .PHONY: config
 config:
-	ansible-playbook user.yml -K
+	ansible-playbook user.yml $(if $(CI),,-K) $(EXTRA_VARS)
 
 .PHONY: config-core
 config-core:
-	ansible-playbook user.yml --tags "core" -K
+	ansible-playbook user.yml --tags "core" $(if $(CI),,-K) $(EXTRA_VARS)
 
 .PHONY: config-etc
 config-etc:
-	ansible-playbook user.yml --tags "etc" -K
+	ansible-playbook user.yml --tags "etc" $(if $(CI),,-K) $(EXTRA_VARS)
 
 .PHONY: lint
 lint:
 	ansible-lint system.yml user.yml
 
-.PHONY: expand-archiso
-expand-archiso:
-	mount -o remount,size=1G /run/archiso/cowspace
+# systemd-run --user --scope -p CPUQuota=50% make test-system
+.PHONY: test-system
+test-system:
+	cd tests && packer init arch-base.pkr.hcl && packer build arch-base.pkr.hcl
+
+.PHONY: test-user
+test-user:
+	cd tests && packer init arch-user.pkr.hcl && packer build arch-user.pkr.hcl
+
+.PHONY: test-all
+test-all: test-system test-user

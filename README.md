@@ -14,6 +14,28 @@ This repo also provides ansible playbooks containing an opinionated arch install
 make help
 ```
 
+## Testing
+
+This repository uses Packer and QEMU to provide verifiable, OS-agnostic testing of the playbooks locally.
+
+**Prerequisites:**
+- [QEMU/KVM](https://www.qemu.org/download/)
+- [Packer](https://developer.hashicorp.com/packer/downloads)
+
+Run the test gates:
+
+```sh
+# Test the system install playbook (system.yml) inside a QEMU VM booting from the Arch ISO
+make test-system
+
+# Test the user config playbook (user.yml) using the base image generated above
+make test-user
+
+# Run both tests
+make test-all
+```
+
+
 ## Useful links
 
 - [Wiki](https://wiki.archlinux.org/title/Main_page)

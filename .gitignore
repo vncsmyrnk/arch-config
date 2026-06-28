@@ -1,0 +1,3 @@
+tests/output-*
+tests/packer_cache/
+tests/.packer_plugins/

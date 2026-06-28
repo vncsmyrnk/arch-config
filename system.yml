@@ -222,7 +222,7 @@
       ansible.builtin.user:
         name: "{{ USERNAME }}"
         password: "{{ PASSWORD | password_hash('sha512') }}"
-        groups: wheel
+        groups: [wheel, kvm]
         shell: /bin/zsh
         create_home: true
 
