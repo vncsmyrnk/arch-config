@@ -51,6 +51,7 @@
             timeshift,
             zsh,
             packer,
+            ttf-jetbrains-mono-nerd,
           ]
         state: present
         update_cache: true
