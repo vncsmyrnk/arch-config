@@ -49,14 +49,20 @@ config-etc:
 lint:
 	ansible-lint system.yml user.yml
 
-# systemd-run --user --scope -p CPUQuota=50% make test-system
+TEST_HEADLESS ?= true
+
+# systemd-run --user --scope -p CPUQuota=90% make test-system
 .PHONY: test-system
 test-system:
-	cd tests && packer init arch-base.pkr.hcl && packer build arch-base.pkr.hcl
+	cd tests; \
+	packer init arch-base.pkr.hcl; \
+	packer build -var "headless=$(TEST_HEADLESS)" arch-base.pkr.hcl
 
 .PHONY: test-user
 test-user:
-	cd tests && packer init arch-user.pkr.hcl && packer build arch-user.pkr.hcl
+	cd tests; \
+	packer init arch-user.pkr.hcl; \
+	packer build -var "headless=$(TEST_HEADLESS)" arch-user.pkr.hcl
 
 .PHONY: test-all
 test-all: test-system test-user

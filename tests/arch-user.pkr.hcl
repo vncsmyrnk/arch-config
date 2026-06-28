@@ -7,14 +7,9 @@ packer {
   }
 }
 
-variable "memory" {
-  type    = string
-  default = "2048M"
-}
-
-variable "cpus" {
-  type    = string
-  default = "2"
+variable "headless" {
+  type    = bool
+  default = true
 }
 
 source "qemu" "arch-user" {
@@ -26,17 +21,13 @@ source "qemu" "arch-user" {
   disk_size        = "15000M"
   format           = "qcow2"
   accelerator      = "kvm"
-  headless         = true
+  headless         = var.headless
   ssh_username     = "packer"
   ssh_password     = "packer"
   ssh_timeout      = "20m"
   vm_name          = "arch-user.qcow2"
   net_device       = "virtio-net"
   disk_interface   = "virtio"
-  qemuargs = [
-    ["-m", "${var.memory}"],
-    ["-smp", "${var.cpus}"]
-  ]
 }
 
 build {

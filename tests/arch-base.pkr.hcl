@@ -12,14 +12,14 @@ variable "memory" {
   default = "2048M"
 }
 
-variable "cpus" {
-  type    = string
-  default = "2"
-}
-
 variable "accelerator" {
   type    = string
   default = "kvm"
+}
+
+variable "headless" {
+  type    = bool
+  default = true
 }
 
 source "qemu" "arch-base" {
@@ -30,7 +30,7 @@ source "qemu" "arch-base" {
   disk_size        = "15000M"
   format           = "qcow2"
   accelerator      = var.accelerator
-  headless         = true
+  headless         = var.headless
   http_directory   = "."
   ssh_username     = "root"
   ssh_password     = "packer"
@@ -40,15 +40,14 @@ source "qemu" "arch-base" {
   disk_interface   = "virtio"
   boot_wait        = "5s"
   boot_command = [
-    "<enter><wait45s>",
+    "<enter><wait30s>",
     "passwd<enter><wait5s>",
     "packer<enter><wait5s>",
-    "packer<enter><wait5s>",
-    "systemctl start sshd<enter><wait5s>"
+    "packer<enter><wait2s>",
+    "systemctl start sshd<enter><wait2s>"
   ]
   qemuargs = [
-    ["-m", "${var.memory}"],
-    ["-smp", "${var.cpus}"]
+    ["-m", "${var.memory}"]
   ]
 }
 
