@@ -18,7 +18,7 @@ config-deps:
 system:
 	@if [ -z "$$CI" ]; then \
 		read -p "This process will install Arch Linux from scratch using ansible. Continue? (y/N): " choice; \
-		if [ "$${choice,,}" != "y" ]; then echo "Aborted."; exit 0; fi; \
+		if [ "$$choice" != "y" ]; then echo "Aborted."; false; fi; \
 	fi
 	mount -o remount,size=2G /run/archiso/cowspace
 	pacman -Sy --noconfirm archlinux-keyring ansible ansible-core python python-jinja python-markupsafe python-yaml
