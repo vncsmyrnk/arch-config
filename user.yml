@@ -202,6 +202,15 @@
         mode: "0644"
         backup: true
 
+    - name: Generate SSH key
+      tags: [core, ssh]
+      become: true
+      ansible.builtin.user:
+        name: "{{ lookup('env', 'USER') }}"
+        generate_ssh_key: true
+        ssh_key_type: ed25519
+        ssh_key_file: .ssh/id_ed25519
+
     - name: Clone dotfiles Git repository
       tags: [core, dotfiles]
       ansible.builtin.git:
