@@ -16,8 +16,8 @@ deps:
 system:
 	@read -p "This process will install Arch Linux from scratch using ansible. Continue? (y/N): " choice; \
 	if [ "$${choice,,}" != "y" ]; then echo "Aborted."; exit 0; fi
-	pacman -Sy archlinux-keyring ansible ansible-core python python-jinja python-markupsafe python-yaml > /dev/null
-	ansible-galaxy collection install -r requirements.yml > /dev/null
+	pacman -Sy archlinux-keyring ansible ansible-core python python-jinja python-markupsafe python-yaml
+	ansible-galaxy collection install -r requirements.yml
 	ansible-playbook system.yml
 	@echo "All Done. Inspect, unmount and reboot"
 
