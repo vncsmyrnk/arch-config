@@ -91,7 +91,7 @@
       tags: [core, yay]
       become: true
       ansible.builtin.command:
-        cmd: "pacman -U --noconfirm {{ yay_package.files[0].path }}"
+        cmd: "pacman -U --noconfirm {{ yay_package.files | map(attribute='path') | join(' ') }}"
       when: not yay_stat.stat.exists
       changed_when: true
       check_mode: false
