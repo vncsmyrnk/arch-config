@@ -31,7 +31,7 @@ install-aur: # Automating AUR packages installations is a security risk
 	yay -S \
 	google-chrome gnome-shell-extension-argos-git gnome-shell-extension-window-calls-git gwin-git \
 	shell-utils-git antigravity-cli ngrok stripe-cli downgrade python-plotext \
-	github-copilot-cli envycontrol google-cloud-sdk redis-cli claude-code
+	github-copilot-cli envycontrol google-cloud-sdk redis-cli claude-code oh-my-posh
 
 .PHONY: config
 config:
