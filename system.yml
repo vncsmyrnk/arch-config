@@ -182,7 +182,7 @@
       ansible.builtin.command: mkinitcpio -P
       changed_when: true
 
-    - name: Install grub and system packages
+    - name: Install essential system packages
       community.general.pacman:
         name:
           - grub
@@ -202,6 +202,7 @@
           - fastfetch
           - net-tools
           - zsh
+          - ansible-core
         state: present
         update_cache: true
 
