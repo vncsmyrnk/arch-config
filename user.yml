@@ -147,11 +147,19 @@
         state: present
         update_cache: true
 
-    - name: Install GPU tools
+    - name: Install nvidia GPU tools
       become: true
-      tags: [gpu]
+      tags: [gpu, nvidia]
       community.general.pacman:
         name: [nvidia-open]
+        state: present
+        update_cache: true
+
+    - name: Install AMD GPU tools
+      become: true
+      tags: [gpu, amd]
+      community.general.pacman:
+        name: [vulkan-radeon]
         state: present
         update_cache: true
 
