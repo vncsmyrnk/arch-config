@@ -52,6 +52,7 @@
             zsh,
             packer,
             ttf-jetbrains-mono-nerd,
+            keyd,
           ]
         state: present
         update_cache: true
@@ -203,6 +204,13 @@
         dest: /etc/pacman.conf
         mode: "0644"
         backup: true
+
+    - name: Enable essential services
+      become: true
+      tags: [core]
+      ansible.builtin.systemd:
+        name: keyd
+        enabled: true
 
     - name: Generate SSH key
       tags: [core, ssh]
