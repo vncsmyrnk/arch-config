@@ -53,6 +53,7 @@
             packer,
             ttf-jetbrains-mono-nerd,
             keyd,
+            firefox,
           ]
         state: present
         update_cache: true
