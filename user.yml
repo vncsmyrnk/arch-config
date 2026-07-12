@@ -144,6 +144,7 @@
             python-matplotlib,
             python-seaborn,
             ansible-lint,
+            bats,
           ]
         state: present
         update_cache: true
