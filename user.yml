@@ -54,6 +54,7 @@
             ttf-jetbrains-mono-nerd,
             keyd,
             firefox,
+            socat,
           ]
         state: present
         update_cache: true
