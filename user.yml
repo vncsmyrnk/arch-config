@@ -55,6 +55,7 @@
             keyd,
             firefox,
             socat,
+            elvish,
           ]
         state: present
         update_cache: true
