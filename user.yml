@@ -147,6 +147,7 @@
             python-seaborn,
             ansible-lint,
             bats,
+            gitleaks,
           ]
         state: present
         update_cache: true
