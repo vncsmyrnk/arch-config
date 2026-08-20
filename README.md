@@ -116,3 +116,7 @@ mount -o remount,size=1G /run/archiso/cow
 Install `linux-lts` and `linux-lts-headers` alongside `linux` and `linux-headers`. The LTS kernel can be useful if some regression problem on kernel updates.
 
 When using GRUB, regenerate the configuration file. This ensures the LTS kernel appears on "Advanced options" section.
+
+## Keyrings
+
+When `invalid or corrupted package (PGP signature)` occurs, run `pacman -Sy archlinux-keyring`.
