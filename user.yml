@@ -57,6 +57,7 @@
             socat,
             elvish,
             pv,
+            himalaya,
           ]
         state: present
         update_cache: true
