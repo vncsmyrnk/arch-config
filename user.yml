@@ -58,6 +58,7 @@
             elvish,
             pv,
             himalaya,
+            age,
           ]
         state: present
         update_cache: true
