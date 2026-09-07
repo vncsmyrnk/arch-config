@@ -60,45 +60,46 @@
             himalaya,
             age,
             bc,
+            devtools,
           ]
         state: present
         update_cache: true
 
-    - name: Check if yay is installed
-      tags: [core, yay]
+    - name: Check if paru is installed
+      tags: [core, paru]
       ansible.builtin.stat:
-        path: /usr/bin/yay
-      register: yay_stat
+        path: /usr/bin/paru
+      register: paru_stat
 
-    - name: Clone yay-bin from AUR
-      tags: [core, yay]
+    - name: Clone paru from AUR
+      tags: [core, paru]
       ansible.builtin.git:
-        repo: "https://aur.archlinux.org/yay-bin.git"
-        dest: "{{ ansible_facts['user_dir'] }}/yay"
+        repo: "https://aur.archlinux.org/paru.git"
+        dest: "{{ ansible_facts['user_dir'] }}/paru"
         version: master
-      when: not yay_stat.stat.exists
+      when: not paru_stat.stat.exists
       check_mode: false
 
-    - name: Build yay
-      tags: [core, yay]
+    - name: Build paru
+      tags: [core, paru]
       ansible.builtin.command:
         cmd: makepkg -f --noconfirm
-        chdir: "{{ ansible_facts['user_dir'] }}/yay"
-      when: not yay_stat.stat.exists
+        chdir: "{{ ansible_facts['user_dir'] }}/paru"
+      when: not paru_stat.stat.exists
       changed_when: true
       check_mode: false
 
-    - name: Find the yay package file
-      tags: [core, yay]
+    - name: Find the paru package file
+      tags: [core, paru]
       ansible.builtin.find:
-        paths: "{{ ansible_facts['user_dir'] }}/yay"
-        patterns: "yay-*.pkg.tar.zst"
-      register: yay_package
-      when: not yay_stat.stat.exists
+        paths: "{{ ansible_facts['user_dir'] }}/paru"
+        patterns: "paru-*.pkg.tar.zst"
+      register: paru_package
+      when: not paru_stat.stat.exists
       check_mode: false
 
-    - name: Install yay package
-      tags: [core, yay]
+    - name: Install paru
+      tags: [core, paru]
       become: true
       ansible.builtin.command:
         cmd: "pacman -U --noconfirm {{ yay_package.files | map(attribute='path') | join(' ') }}"
@@ -106,21 +107,38 @@
       changed_when: true
       check_mode: false
 
-    - name: Ensure yay target directory exists
-      tags: [always]
+    - name: Copy paru conf
+      become: true
+      tags: [core, etc, paru]
+      ansible.builtin.copy:
+        src: ./paru/paru.conf
+        dest: /etc/paru.conf
+        mode: "0644"
+        backup: true
+
+    - name: Create local AUR repository
+      become: true
+      tags: [core, paru]
       ansible.builtin.file:
-        path: "{{ ansible_facts['user_dir'] }}/.config/yay"
+        path: /var/lib/repo/aur
         state: directory
         mode: "0755"
-      changed_when: false
-      check_mode: false
 
-    - name: Stow yay configuration
-      tags: [core, yay, dotfiles]
+    - name: Initialize local AUR repository
+      become: true
+      tags: [core, paru]
       ansible.builtin.command:
-        cmd: stow -t "{{ ansible_facts['user_dir'] }}/.config/yay" yay
-        creates: "{{ ansible_facts['user_dir'] }}}/.config/yay"
-      changed_when: false
+        cmd: repo-add /var/lib/repo/aur/aur.db.tar.gz
+        creates: /var/lib/repo/aur/aur.db.tar.gz
+
+    - name: Set local AUR repository ownership
+      become: true
+      tags: [core, paru]
+      ansible.builtin.file:
+        path: /var/lib/repo/aur
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+        recurse: true
 
     - name: Install development tools
       become: true
