@@ -152,6 +152,7 @@
             ansible-lint,
             bats,
             gitleaks,
+            slirp4netns,
           ]
         state: present
         update_cache: true
