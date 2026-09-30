@@ -171,6 +171,7 @@
             bats,
             gitleaks,
             slirp4netns,
+            drone-cli,
           ]
         state: present
         update_cache: true
